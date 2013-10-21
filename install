@@ -1,0 +1,74 @@
+#!/bin/bash
+# Graphite installation script for Ubuntu 13.10 x64
+# Jason Dixon <jason@dixongroup.net>
+
+SYNTHESIZE_HOME=$PWD
+UBUNTU_RELEASE=`lsb_release -a 2>/dev/null | grep '^Descrip' | cut -s -f 2`
+
+GRAPHITE_HOME='/opt/graphite'
+GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
+GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
+
+if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 13.10' ]]; then
+  echo "Sorry, this is only supported for Ubuntu Linux 13.10."
+  exit 1
+fi
+if [[ -d $GRAPHITE_HOME ]]; then
+  echo "Looks like you already have a Graphite installation in ${GRAPHITE_HOME}, aborting."
+  exit 1
+fi
+
+# Install package dependencies from apt
+RUNLEVEL=1 apt-get install -y python-cairo python-django python-django-tagging python-twisted python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make scons
+
+# Download source repositories for Graphite/Carbon/Whisper and Statsite
+cd /usr/local/src
+git clone https://github.com/graphite-project/graphite-web.git
+git clone https://github.com/graphite-project/carbon.git
+git clone https://github.com/graphite-project/whisper.git
+git clone https://github.com/armon/statsite.git
+
+# Build and install Graphite/Carbon/Whisper and Statsite
+cd whisper; git checkout 0.9.12; python setup.py install
+cd ../carbon; git checkout 0.9.12; python setup.py install
+cd ../graphite-web; python check-dependencies.py; git checkout 0.9.12; python setup.py install
+cd ../statsite; make; cp statsite /usr/local/sbin/; cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
+
+# Install configuration files for Graphite/Carbon and Apache
+cp ${SYNTHESIZE_HOME}/templates/statsite/statsite.conf /etc/statsite.conf
+mkdir ${GRAPHITE_CONF}/examples
+mv ${GRAPHITE_CONF}/*.example ${GRAPHITE_CONF}/examples/
+cp ${SYNTHESIZE_HOME}/templates/graphite/conf/* ${GRAPHITE_CONF}/
+cp ${SYNTHESIZE_HOME}/templates/collectd/collectd.conf /etc/collectd/
+cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/
+
+# Setup the correct Apache site and modules
+a2dissite 000-default
+a2ensite graphite
+a2enmod ssl
+a2enmod socache_shmcb
+
+# Install configuration files for Django
+cd ${GRAPHITE_HOME}/webapp/graphite
+cp ${SYNTHESIZE_HOME}/templates/graphite/webapp/* .
+sed -i -e "s/UNSAFE_DEFAULT/`date | md5sum | cut -d ' ' -f 1`/" local_settings.py
+
+# Setup the Django database
+python manage.py syncdb --noinput
+chown www-data:www-data ${GRAPHITE_STORAGE}/graphite.db
+
+# Add carbon system user and set permissions
+groupadd -g 999 carbon
+useradd -c "carbon user" -g 999 -u 999 -s /bin/false carbon
+chmod 775 ${GRAPHITE_STORAGE}
+chown www-data:carbon ${GRAPHITE_STORAGE}
+chown -R carbon ${GRAPHITE_STORAGE}/whisper
+mkdir ${GRAPHITE_STORAGE}/log/apache2
+chown -R www-data ${GRAPHITE_STORAGE}/log
+
+# Start our processes
+${GRAPHITE_HOME}/bin/carbon-cache.py start
+service memcached start
+service collectd start
+service apache2 start
+/usr/local/sbin/statsite -f /etc/statsite.conf
