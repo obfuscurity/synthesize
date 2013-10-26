@@ -47,5 +47,5 @@ ${GRAPHITE_HOME}/bin/carbon-cache.py stop && ${GRAPHITE_HOME}/bin/carbon-cache.p
 service memcached restart
 service collectd restart
 service apache2 restart
-pkill -f statsite
+pkill -f statsite && rm /var/run/statsite.pid
 /usr/local/sbin/statsite -f /etc/statsite.conf
