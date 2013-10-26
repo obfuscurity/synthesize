@@ -43,7 +43,8 @@ python manage.py syncdb --noinput
 chown www-data:www-data ${GRAPHITE_STORAGE}/graphite.db
 
 # Restart our processes
-${GRAPHITE_HOME}/bin/carbon-cache.py stop && ${GRAPHITE_HOME}/bin/carbon-cache.py start
+pkill -f carbon-cache && rm ${GRAPHITE_STORAGE}/carbon-cache-a.pid
+${GRAPHITE_HOME}/bin/carbon-cache.py start
 service memcached restart
 service collectd restart
 service apache2 restart
