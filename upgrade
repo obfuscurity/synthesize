@@ -1,0 +1,51 @@
+#!/bin/bash
+# Graphite upgrade script for Ubuntu 13.10 x64
+# Jason Dixon <jason@dixongroup.net>
+
+SYNTHESIZE_HOME=$PWD
+UBUNTU_RELEASE=`lsb_release -a 2>/dev/null | grep '^Descrip' | cut -s -f 2`
+
+GRAPHITE_HOME='/opt/graphite'
+GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
+GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
+
+if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 13.10' ]]; then
+  echo "Sorry, this is only supported for Ubuntu Linux 13.10."
+  exit 1
+fi
+if [[ ! -d $GRAPHITE_HOME ]]; then
+  echo "Unable to find an existing Graphite installation in ${GRAPHITE_HOME}, aborting."
+  exit 1
+fi
+
+# Update, Build and install Graphite/Carbon/Whisper and Statsite
+cd /usr/local/src
+cd whisper; git fetch; git checkout 0.9.x python setup.py install
+cd ../carbon; git fetch; git checkout 0.9.x; python setup.py install
+cd ../graphite-web; git fetch; git checkout 0.9.x; python check-dependencies.py; python setup.py install
+cd ../statsite; make clean; git fetch; make; cp statsite /usr/local/sbin/; cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
+
+# Install configuration files for Graphite/Carbon and Apache
+cp ${SYNTHESIZE_HOME}/templates/statsite/statsite.conf /etc/statsite.conf
+mv ${GRAPHITE_CONF}/*.example ${GRAPHITE_CONF}/examples/
+cp ${SYNTHESIZE_HOME}/templates/graphite/conf/* ${GRAPHITE_CONF}/
+cp ${SYNTHESIZE_HOME}/templates/collectd/collectd.conf /etc/collectd/
+cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/
+
+# Install configuration files for Django
+cd ${GRAPHITE_HOME}/webapp/graphite
+cp ${SYNTHESIZE_HOME}/templates/graphite/webapp/* .
+sed -i -e "s/UNSAFE_DEFAULT/`date | md5sum | cut -d ' ' -f 1`/" local_settings.py
+
+# Update the Django database
+mv ${GRAPHITE_STORAGE}/graphite.db ${GRAPHITE_STORAGE}/graphite.db~
+python manage.py syncdb --noinput
+chown www-data:www-data ${GRAPHITE_STORAGE}/graphite.db
+
+# Restart our processes
+${GRAPHITE_HOME}/bin/carbon-cache.py stop && ${GRAPHITE_HOME}/bin/carbon-cache.py start
+service memcached restart
+service collectd restart
+service apache2 restart
+pkill -f statsite
+/usr/local/sbin/statsite -f /etc/statsite.conf
