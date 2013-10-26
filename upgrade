@@ -8,6 +8,7 @@ UBUNTU_RELEASE=`lsb_release -a 2>/dev/null | grep '^Descrip' | cut -s -f 2`
 GRAPHITE_HOME='/opt/graphite'
 GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
+GRAPHITE_RELEASE='0.9.x'
 
 if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 13.10' ]]; then
   echo "Sorry, this is only supported for Ubuntu Linux 13.10."
@@ -20,9 +21,9 @@ fi
 
 # Update, Build and install Graphite/Carbon/Whisper and Statsite
 cd /usr/local/src
-cd whisper; git fetch; git checkout 0.9.x python setup.py install
-cd ../carbon; git fetch; git checkout 0.9.x; python setup.py install
-cd ../graphite-web; git fetch; git checkout 0.9.x; python check-dependencies.py; python setup.py install
+cd whisper; git fetch; git checkout ${GRAPHITE_RELEASE}; python setup.py install
+cd ../carbon; git fetch; git checkout ${GRAPHITE_RELEASE}; python setup.py install
+cd ../graphite-web; git fetch; git checkout ${GRAPHITE_RELEASE}; python check-dependencies.py; python setup.py install
 cd ../statsite; git fetch; make; cp statsite /usr/local/sbin/; cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
 
 # Install configuration files for Graphite/Carbon and Apache
