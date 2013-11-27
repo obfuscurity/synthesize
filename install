@@ -42,6 +42,7 @@ mv ${GRAPHITE_CONF}/*.example ${GRAPHITE_CONF}/examples/
 cp ${SYNTHESIZE_HOME}/templates/graphite/conf/* ${GRAPHITE_CONF}/
 cp ${SYNTHESIZE_HOME}/templates/collectd/collectd.conf /etc/collectd/
 cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/
+cp ${SYNTHESIZE_HOME}/templates/init/* /etc/init/
 
 # Setup the correct Apache site and modules
 a2dissite 000-default
@@ -68,8 +69,8 @@ mkdir ${GRAPHITE_STORAGE}/log/apache2
 chown -R www-data ${GRAPHITE_STORAGE}/log
 
 # Start our processes
-${GRAPHITE_HOME}/bin/carbon-cache.py start
+service graphite start
 service memcached start
 service collectd start
 service apache2 start
-/usr/local/sbin/statsite -f /etc/statsite.conf
+service statsite start
