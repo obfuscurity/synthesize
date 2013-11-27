@@ -2,9 +2,11 @@
 # Graphite uninstall script for Ubuntu 13.10 x64
 # Jason Dixon <jason@dixongroup.net>
 
-# Kill off our manual processes
-pkill -f statsite
-pkill -f carbon
+service graphite stop
+service memcached stop
+service collectd stop
+service apache2 stop
+service statsite stop
 
 # Remove various binaries, configuration files, and source directories
 rm /usr/local/sbin/statsite*
@@ -17,6 +19,8 @@ rm -r /usr/local/src/statsite
 rm /usr/local/bin/*whisper*.py
 rm /usr/local/lib/python2.7/dist-packages/whisper*
 rm /etc/apache2/sites-*/graphite.conf
+rm /etc/init/graphite.conf
+rm /etc/init/statsite.conf
 
 # Uninstall our package dependencies and purge configurations
 apt-get purge -y python-cairo python-django python-django-tagging python-twisted python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make scons
