@@ -69,7 +69,7 @@ mkdir ${GRAPHITE_STORAGE}/log/apache2
 chown -R www-data ${GRAPHITE_STORAGE}/log
 
 # Start our processes
-service graphite start
+service carbon start
 service memcached start
 service collectd start
 service apache2 start
