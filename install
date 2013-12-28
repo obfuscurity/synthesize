@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 # Graphite installation script for Ubuntu 13.10 x64
 # Jason Dixon <jason@dixongroup.net>
 
