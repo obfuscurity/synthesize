@@ -7,6 +7,8 @@ Synthesize is built to run on Ubuntu 13.10. It will __not__ run on other Ubuntu 
 
 The resulting Graphite server __listens only on https port 443__ and has been configured to collect metrics specifically for helping profile the performance of your Graphite and Carbon services. It uses memcached for improved query performance, and Statsite for a fast, C-based implementation of the StatsD collector/aggregator.
 
+**WARNING:** You should not install Synthesize directly on your personal development system. It's strongly suggested that you use a VM or other temporary VPS instance for sandboxing Synthesize.
+
 ## Provides
 
 * Graphite 0.9.12 ([graphite-web](https://github.com/graphite-project/graphite-web), [carbon](https://github.com/graphite-project/carbon), [whisper](https://github.com/graphite-project/whisper))
