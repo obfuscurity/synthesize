@@ -17,21 +17,49 @@ The resulting Graphite server __listens only on https port 443__ and has been co
 
 ## Dependencies
 
-* An Ubuntu 13.10 VM or server
+* Vagrant, an Ubuntu 13.10 VM or a non-production server
 * Some mechanism for downloading Synthesize
 
 ## Installation
+
+### Manual
 
 ```
 $ cd synthesize
 $ ./install
 ```
 
+### Vagrant
+
+Synthesize configures the following host ports to forward to the private vagrant box:
+
+```
+config.vm.network :forwarded_port, guest: 443, host: 8443
+config.vm.network :forwarded_port, guest: 8125, host: 8125
+config.vm.network :forwarded_port, guest: 2003, host: 22003
+config.vm.network :forwarded_port, guest: 2004, host: 22004
+```
+
+```
+$ cd synthesize
+$ vagrant plugin install vagrant-vbguest
+$ vagrant up
+```
+
 ## Removal
+
+### Manual
 
 ```
 $ cd synthesize
 $ ./uninstall
+```
+
+### Vagrant
+
+```
+$ cd synthesize
+$ vagrant destroy
 ```
 
 ## License
