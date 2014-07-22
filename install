@@ -19,6 +19,9 @@ if [[ -d $GRAPHITE_HOME ]]; then
   exit 1
 fi
 
+# Update apt since the vagrant image might be old
+apt-get update -y
+
 # Install package dependencies from apt
 RUNLEVEL=1 apt-get install -y python-cairo python-django python-django-tagging python-twisted python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make scons
 
