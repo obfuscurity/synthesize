@@ -75,3 +75,6 @@ service memcached start
 service collectd start
 service apache2 start
 service statsite start
+
+# Fix log permissions after carbon starts
+chown -R carbon:carbon ${GRAPHITE_STORAGE}/log/carbon*
