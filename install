@@ -1,5 +1,5 @@
 #!/bin/bash -ex
-# Graphite installation script for Ubuntu 13.10 x64
+# Graphite installation script for Ubuntu 14.04
 # Jason Dixon <jason@dixongroup.net>
 
 SYNTHESIZE_HOME=$PWD
@@ -10,8 +10,8 @@ GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
 GRAPHITE_RELEASE='0.9.12'
 
-if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 13.10' ]]; then
-  echo "Sorry, this is only supported for Ubuntu Linux 13.10."
+if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04.1 LTS' ]]; then
+  echo "Sorry, this is only supported for Ubuntu Linux 14.04."
   exit 1
 fi
 if [[ -d $GRAPHITE_HOME ]]; then
@@ -19,11 +19,9 @@ if [[ -d $GRAPHITE_HOME ]]; then
   exit 1
 fi
 
-# Update apt since the vagrant image might be old
-apt-get update -y
-
 # Install package dependencies from apt
-RUNLEVEL=1 apt-get install -y python-cairo python-django python-django-tagging python-twisted python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make scons
+apt-get update
+RUNLEVEL=1 apt-get install -y python-cairo python-dev python-django python-django-tagging python-pip python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make scons
 
 # Download source repositories for Graphite/Carbon/Whisper and Statsite
 cd /usr/local/src
@@ -34,7 +32,7 @@ git clone https://github.com/armon/statsite.git
 
 # Build and install Graphite/Carbon/Whisper and Statsite
 cd whisper; git checkout ${GRAPHITE_RELEASE}; python setup.py install
-cd ../carbon; git checkout ${GRAPHITE_RELEASE}; python setup.py install
+cd ../carbon; git checkout ${GRAPHITE_RELEASE}; pip install -r requirements.txt; python setup.py install
 cd ../graphite-web; git checkout ${GRAPHITE_RELEASE}; python check-dependencies.py; python setup.py install
 cd ../statsite; make; cp statsite /usr/local/sbin/; cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
 
