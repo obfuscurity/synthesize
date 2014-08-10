@@ -21,7 +21,7 @@ fi
 
 # Install package dependencies from apt
 apt-get update
-RUNLEVEL=1 apt-get install -y python-cairo python-dev python-django python-django-tagging python-pip python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make scons
+RUNLEVEL=1 apt-get install -y libcairo2-dev pkg-config python-cairo python-dev python-pip fontconfig apache2 libapache2-mod-wsgi git-core collectd memcached gcc g++ make scons
 
 # Download source repositories for Graphite/Carbon/Whisper and Statsite
 cd /usr/local/src
@@ -33,7 +33,7 @@ git clone https://github.com/armon/statsite.git
 # Build and install Graphite/Carbon/Whisper and Statsite
 cd whisper; git checkout ${GRAPHITE_RELEASE}; python setup.py install
 cd ../carbon; git checkout ${GRAPHITE_RELEASE}; pip install -r requirements.txt; python setup.py install
-cd ../graphite-web; git checkout ${GRAPHITE_RELEASE}; python check-dependencies.py; python setup.py install
+cd ../graphite-web; git checkout ${GRAPHITE_RELEASE}; pip install -r requirements.txt; python check-dependencies.py; python setup.py install
 cd ../statsite; make; cp statsite /usr/local/sbin/; cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
 
 # Install configuration files for Graphite/Carbon and Apache
