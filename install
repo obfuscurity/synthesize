@@ -46,6 +46,7 @@ cp ${SYNTHESIZE_HOME}/templates/graphite/conf/* ${GRAPHITE_CONF}/
 cp ${SYNTHESIZE_HOME}/templates/collectd/collectd.conf /etc/collectd/
 cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/
 cp ${SYNTHESIZE_HOME}/templates/init/* /etc/init/
+cp ${SYNTHESIZE_HOME}/templates/init.d/* /etc/init.d/
 
 # Setup the correct Apache site and modules
 a2dissite 000-default
@@ -70,9 +71,10 @@ chown www-data:carbon ${GRAPHITE_STORAGE}
 chown -R carbon ${GRAPHITE_STORAGE}/whisper
 mkdir ${GRAPHITE_STORAGE}/log/apache2
 chown -R www-data ${GRAPHITE_STORAGE}/log
+chmod +x /etc/init.d/carbon-cache
 
 # Start our processes
-service carbon start
+service carbon-cache start
 service memcached start
 service collectd start
 service apache2 start

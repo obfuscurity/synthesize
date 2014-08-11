@@ -1,0 +1,81 @@
+#!/bin/sh
+
+# Initscript for carbon-cache processes
+# Jason Dixon <jason@dixongroup.net>
+#
+# You must set the variables below. The
+# INSTANCES variable should be set to the
+# number of carbon-cache instances you have
+# configured in your carbon.conf. Note that
+# they must be numerically indexed from 1.
+# (e.g. [cache:1], [cache:2], [cache:3]
+
+PID_DIR=/opt/graphite/storage
+DAEMON=/opt/graphite/bin/carbon-cache.py
+NAME=carbon-cache
+INSTANCES=1
+
+set -e
+
+test -x $DAEMON || exit 0
+
+case "$1" in
+
+  start)
+    for INSTANCE in $(seq 1 $INSTANCES); do
+      echo -n "Starting ${NAME}-${INSTANCE}: "
+      if start-stop-daemon --start --quiet --pidfile "${NAME}-${INSTANCE}.pid" --exec $DAEMON start 1>/dev/null -- --instance=${INSTANCE}
+      then
+        echo "succeeded"
+      else
+        echo "failed"
+      fi
+    done
+    ${0} status
+    ;;
+
+  stop)
+    for INSTANCE in $(seq 1 $INSTANCES); do
+      echo -n "Stopping ${NAME}-${INSTANCE}: "
+      $DAEMON stop --instance=${INSTANCE} 1>/dev/null
+      echo "stopped"
+    done
+    exit 0
+    ;;
+
+  restart)
+    ${0} stop
+    ${0} start
+    ;;
+
+  status)
+    for INSTANCE in $(seq 1 $INSTANCES); do
+      if [ -f "${PID_DIR}/${NAME}-${INSTANCE}.pid" ]; then
+        PID=`cat "${PID_DIR}/${NAME}-${INSTANCE}.pid"`
+
+        echo -n "${NAME}-${INSTANCE} (pid: $PID): "
+        if ps -p $PID >/dev/null; then
+          echo "running"
+        else
+          echo "failed"
+        fi
+      else
+        echo "${NAME}-${INSTANCE} not running"
+      fi
+    done
+    for INSTANCE in $(seq 1 $INSTANCES); do
+      if [ ! -f "${PID_DIR}/${NAME}-${INSTANCE}.pid" ]; then
+        exit 1
+      fi
+    done
+    exit 0
+    ;;
+
+  *)
+    echo "Usage: /etc/init.d/${NAME} {start|stop|restart|status}" >%2
+    exit 1
+    ;;
+
+esac
+
+exit 0
