@@ -19,8 +19,10 @@ if [[ -d $GRAPHITE_HOME ]]; then
   exit 1
 fi
 
+# Update apt since the vagrant image might be old
+apt-get update -y
+
 # Install package dependencies from apt
-apt-get update
 RUNLEVEL=1 apt-get install -y libcairo2-dev pkg-config python-cairo python-dev python-pip fontconfig apache2 libapache2-mod-wsgi git-core collectd memcached gcc g++ make scons
 
 # Download source repositories for Graphite/Carbon/Whisper and Statsite
