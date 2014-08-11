@@ -26,7 +26,7 @@ The resulting Graphite server __listens only on https port 443__ and has been co
 
 ```
 $ cd synthesize
-$ ./install
+$ sudo ./install
 ```
 
 ### Vagrant
@@ -44,6 +44,20 @@ config.vm.network :forwarded_port, guest: 2004, host: 22004
 $ cd synthesize
 $ vagrant plugin install vagrant-vbguest
 $ vagrant up
+```
+
+## Administration
+
+There is a superuser (Django) account that grants access to the administrative features in the backend Django database. The default credentials are:
+
+* username `admin`
+* password `graphite_me_synthesize`
+
+These credentials can be changed with the following commands:
+
+```
+$ cd /opt/graphite/webapp/graphite
+$ sudo python manage.py changepassword admin
 ```
 
 ## Removal
