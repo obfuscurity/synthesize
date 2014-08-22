@@ -2,7 +2,7 @@
 # Graphite uninstall script for Ubuntu 13.10 x64
 # Jason Dixon <jason@dixongroup.net>
 
-service graphite stop
+service carbon-cache stop
 service memcached stop
 service collectd stop
 service apache2 stop
