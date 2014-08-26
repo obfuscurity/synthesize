@@ -8,7 +8,10 @@ UBUNTU_RELEASE=`lsb_release -a 2>/dev/null | grep '^Descrip' | cut -s -f 2`
 GRAPHITE_HOME='/opt/graphite'
 GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
-GRAPHITE_RELEASE='0.9.12'
+
+if [ -z $GRAPHITE_RELEASE ]; then
+    GRAPHITE_RELEASE='0.9.12'
+fi
 
 if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04.1 LTS' ]]; then
   echo "Sorry, this is only supported for Ubuntu Linux 14.04."
