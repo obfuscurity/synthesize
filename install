@@ -26,7 +26,7 @@ fi
 apt-get update -y
 
 # Install package dependencies from apt
-RUNLEVEL=1 apt-get install -y libcairo2-dev pkg-config python-cairo python-dev python-pip fontconfig apache2 libapache2-mod-wsgi git-core collectd memcached gcc g++ make scons
+RUNLEVEL=1 apt-get install -y libcairo2-dev libffi-dev pkg-config python-dev python-pip fontconfig apache2 libapache2-mod-wsgi git-core collectd memcached gcc g++ make scons
 
 # Download source repositories for Graphite/Carbon/Whisper and Statsite
 cd /usr/local/src
