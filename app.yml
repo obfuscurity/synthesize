@@ -1,0 +1,14 @@
+name: Graphite 0.9.12
+image: ubuntu-14-04-x64
+min_size: 1gb
+config:
+  #cloud-config
+  users:
+    - name: vagrant
+      groups: sudo
+      shell: /bin/bash
+      sudo: ['ALL=(ALL) NOPASSWD:ALL']
+  packages:
+    - git
+  runcmd:
+    - cd /home/vagrant && git clone https://github.com/obfuscurity/synthesize.git && cd synthesize && bash install
