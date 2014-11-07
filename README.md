@@ -1,7 +1,7 @@
 Synthesize
 ==========
 
-[![Install on DigitalOcean](http://installer.71m.us/button.svg)](http://installer.71m.us/install?url=https://github.com/deniszh/syntesize)
+[![Install on DigitalOcean](http://installer.71m.us/button.svg)](http://installer.71m.us/install?url=https://github.com/obfuscurity/syntesize)
 
 Installing Graphite doesn't have to be difficult. The `install` script in synthesize is designed to make it brain-dead easy to install Graphite and related services onto a modern Linux distribution.
 
