@@ -1,0 +1,14 @@
+name: synthesize
+image: ubuntu-14-04-x64
+min_size: 512mb
+config:
+  #cloud-config
+  users:
+    - name: install
+      groups: sudo
+      shell: /bin/bash
+      sudo: ['ALL=(ALL) NOPASSWD:ALL']
+  packages:
+    - git
+  runcmd:
+    - cd /home/install && git clone https://github.com/obfuscurity/synthesize.git && cd synthesize && bash install
