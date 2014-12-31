@@ -8,7 +8,10 @@ UBUNTU_RELEASE=`lsb_release -a 2>/dev/null | grep '^Descrip' | cut -s -f 2`
 GRAPHITE_HOME='/opt/graphite'
 GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
-GRAPHITE_RELEASE='0.9.12'
+
+if [ -z $GRAPHITE_RELEASE ]; then
+    GRAPHITE_RELEASE='0.9.12'
+fi
 
 if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04.1 LTS' ]]; then
   echo "Sorry, this is only supported for Ubuntu Linux 14.04."
@@ -23,7 +26,7 @@ fi
 apt-get update -y
 
 # Install package dependencies from apt
-RUNLEVEL=1 apt-get install -y libcairo2-dev pkg-config python-cairo python-dev python-pip fontconfig apache2 libapache2-mod-wsgi git-core collectd memcached gcc g++ make scons
+RUNLEVEL=1 apt-get install -y libcairo2-dev libffi-dev pkg-config python-dev python-pip fontconfig apache2 libapache2-mod-wsgi git-core collectd memcached gcc g++ make scons
 
 # Download source repositories for Graphite/Carbon/Whisper and Statsite
 cd /usr/local/src
@@ -58,6 +61,9 @@ a2enmod rewrite
 # Install configuration files for Django
 cd ${GRAPHITE_HOME}/webapp/graphite
 cp ${SYNTHESIZE_HOME}/templates/graphite/webapp/* .
+if [[ $GRAPHITE_RELEASE == '0.9.x' ]]; then
+  mv initial_data.json.0_9_x initial_data.json
+fi
 sed -i -e "s/UNSAFE_DEFAULT/`date | md5sum | cut -d ' ' -f 1`/" local_settings.py
 
 # Setup the Django database
