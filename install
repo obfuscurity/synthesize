@@ -2,7 +2,7 @@
 # Graphite installation script for Ubuntu 14.04
 # Jason Dixon <jason@dixongroup.net>
 
-SYNTHESIZE_HOME=$PWD
+SYNTHESIZE_HOME=$( cd "$( dirname "$0" )" && pwd )
 UBUNTU_RELEASE=`lsb_release -a 2>/dev/null | grep '^Descrip' | cut -s -f 2`
 
 GRAPHITE_HOME='/opt/graphite'
