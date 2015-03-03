@@ -13,7 +13,7 @@ if [ -z $GRAPHITE_RELEASE ]; then
     GRAPHITE_RELEASE='0.9.13-pre1'
 fi
 
-if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04.1 LTS' ]]; then
+if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04.2 LTS' ]]; then
   echo "Sorry, this is only supported for Ubuntu Linux 14.04."
   exit 1
 fi
