@@ -78,6 +78,11 @@ mkdir ${GRAPHITE_STORAGE}/log/apache2
 chown www-data ${GRAPHITE_STORAGE}/log/webapp
 chmod +x /etc/init.d/carbon-cache
 
+# Setup hourly cron to rebuild Graphite index
+cp ${SYNTHESIZE_HOME}/templates/graphite/cron/build-index /etc/cron.hourly/graphite-build-index
+chmod 755 /etc/cron.hourly/graphite-build-index
+sudo -u www-data /opt/graphite/bin/build-index.sh
+
 # Start our processes
 service carbon-cache start
 service memcached start
