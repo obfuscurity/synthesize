@@ -83,6 +83,7 @@ chmod 755 /etc/cron.hourly/graphite-build-index
 sudo -u www-data /opt/graphite/bin/build-index.sh
 
 # Start our processes
+update-rc.d carbon-cache defaults
 service carbon-cache start
 service memcached start
 service collectd start
