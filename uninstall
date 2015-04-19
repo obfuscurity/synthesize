@@ -24,6 +24,7 @@ rm /usr/local/lib/python2.7/dist-packages/whisper*
 rm /etc/apache2/sites-*/graphite.conf
 rm /etc/init/graphite.conf
 rm /etc/init/statsite.conf
+rm /etc/cron.hourly/graphite-build-index
 
 # Uninstall our package dependencies and purge configurations
 apt-get purge -y python-cairo python-django python-django-tagging python-twisted python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make
