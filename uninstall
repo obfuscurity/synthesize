@@ -11,6 +11,9 @@ service statsite stop
 # Remove various binaries, configuration files, and source directories
 rm /usr/local/sbin/statsite*
 rm /etc/statsite.conf
+pip uninstall -y -r /usr/local/src/graphite-web/requirements.txt
+pip uninstall -y -r /usr/local/src/carbon/requirements.txt
+pip uninstall --egg SCons
 rm -r /opt/graphite
 rm -r /usr/local/src/graphite-web
 rm -r /usr/local/src/carbon
@@ -23,11 +26,12 @@ rm /etc/init/graphite.conf
 rm /etc/init/statsite.conf
 
 # Uninstall our package dependencies and purge configurations
-apt-get purge -y python-cairo python-django python-django-tagging python-twisted python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make scons
+apt-get purge -y python-cairo python-django python-django-tagging python-twisted python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make
 apt-get autoremove -y
 
 # Brute force cleanup on the collectd configuration directory
 rm -r /etc/collectd
 
 # Remove our system user for Carbon
+pkill -9 -f carbon-cache
 userdel carbon
