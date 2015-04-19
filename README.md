@@ -9,7 +9,7 @@ Synthesize is built to run on Ubuntu 14.04 LTS. It will __not__ run on other Ubu
 
 The resulting Graphite server __listens only on https port 443__ and has been configured to collect metrics specifically for helping profile the performance of your Graphite and Carbon services. It uses memcached for improved query performance, and Statsite for a fast, C-based implementation of the StatsD collector/aggregator.
 
-**WARNING:** You should not install Synthesize directly on your personal development system. It's strongly suggested that you use a VM or other temporary VPS instance for sandboxing Synthesize.
+:warning: **WARNING:** You should not install Synthesize directly on your personal development system. It's strongly suggested that you use a VM or other temporary VPS instance for sandboxing Synthesize.
 
 ## Provides
 
@@ -23,6 +23,8 @@ The resulting Graphite server __listens only on https port 443__ and has been co
 * Some mechanism for downloading Synthesize
 
 ## Installation
+
+:warning: **WARNING:** Windows users may encounter provisioning [issues](https://github.com/obfuscurity/synthesize/issues/21). An apparent workaround is to run `dos2unix` on the `install` file before re-attempting provisioning.
 
 ### Manual
 
