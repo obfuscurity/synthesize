@@ -61,9 +61,6 @@ a2enmod rewrite
 # Install configuration files for Django
 cd ${GRAPHITE_HOME}/webapp/graphite
 cp ${SYNTHESIZE_HOME}/templates/graphite/webapp/* .
-if [[ $GRAPHITE_RELEASE == '0.9.x' ]]; then
-  mv initial_data.json.0_9_x initial_data.json
-fi
 sed -i -e "s/UNSAFE_DEFAULT/`date | md5sum | cut -d ' ' -f 1`/" local_settings.py
 
 # Setup the Django database
