@@ -73,7 +73,6 @@ useradd -c "carbon user" -g 998 -u 998 -s /bin/false carbon
 chmod 775 ${GRAPHITE_STORAGE}
 chown www-data:carbon ${GRAPHITE_STORAGE}
 chown -R carbon ${GRAPHITE_STORAGE}/whisper
-chown carbon:carbon ${GRAPHITE_STORAGE}/log
 mkdir ${GRAPHITE_STORAGE}/log/apache2
 chown www-data ${GRAPHITE_STORAGE}/log/webapp
 chmod +x /etc/init.d/carbon-cache
@@ -90,5 +89,3 @@ service collectd start
 service apache2 start
 service statsite start
 
-# Fix log permissions after carbon starts
-chown -R carbon:carbon ${GRAPHITE_STORAGE}/log/carbon*
