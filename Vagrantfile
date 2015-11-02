@@ -5,8 +5,7 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "synthesize"
-  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+  config.vm.box = "mayflower/trusty64-puppet3"
   config.vm.network :forwarded_port, guest: 443, host: 8443
   config.vm.network :forwarded_port, guest: 8125, host: 8125, protocol: 'tcp'
   config.vm.network :forwarded_port, guest: 8125, host: 8125, protocol: 'udp'
