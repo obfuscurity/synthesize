@@ -13,7 +13,7 @@ The resulting Graphite server __listens only on https port 443__ and has been co
 
 ## Provides
 
-* Graphite 0.9.12 ([graphite-web](https://github.com/graphite-project/graphite-web), [carbon](https://github.com/graphite-project/carbon), [whisper](https://github.com/graphite-project/whisper))
+* Graphite 0.9.14 ([graphite-web](https://github.com/graphite-project/graphite-web), [carbon](https://github.com/graphite-project/carbon), [whisper](https://github.com/graphite-project/whisper))
 * StatsD ([statsite](https://github.com/armon/statsite))
 * collectd agent
 
@@ -62,6 +62,15 @@ These credentials can be changed with the following commands:
 ```
 $ cd /opt/graphite/webapp/graphite
 $ sudo python manage.py changepassword admin
+```
+
+## Upgrade
+
+It's now possible to upgrade an existing Synthesize (e.g. Graphite 0.9.12) to the newest Graphite 0.9.14. You will need to checkout at least version 2.3.0 of Synthesize for this feature. Besides upgrading the Graphite components, it will also migrate the webapp database (`graphite.db`) to the newest fixtures version.
+
+```
+$ cd synthesize
+$ sudo ./upgrade
 ```
 
 ## Removal
