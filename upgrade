@@ -1,0 +1,59 @@
+#!/bin/bash
+# Synthesize upgrade script for Graphite 0.9.14
+# Jason Dixon <jason@dixongroup.net>
+
+SYNTHESIZE_HOME=$( cd "$( dirname "$0" )" && pwd )
+UBUNTU_RELEASE=`lsb_release -a 2>/dev/null | grep '^Descrip' | cut -s -f 2`
+
+GRAPHITE_HOME='/opt/graphite'
+GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
+GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
+
+if [ -z $GRAPHITE_RELEASE ]; then
+    GRAPHITE_RELEASE='0.9.14'
+fi
+
+if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04' ]]; then
+  echo "Sorry, this is only supported for Ubuntu Linux 14.04."
+  exit 1
+fi
+if [[ ! -d $GRAPHITE_HOME ]]; then
+  echo "Unable to find an existing Graphite installation in ${GRAPHITE_HOME}, aborting."
+  exit 1
+fi
+
+# Update, Build and install Graphite/Carbon/Whisper and Statsite
+cd /usr/local/src
+cd whisper; git fetch origin; \
+            git checkout ${GRAPHITE_RELEASE}; \
+            python setup.py install
+cd ../carbon; git fetch origin; \
+              git checkout ${GRAPHITE_RELEASE}; \
+              pip install -r requirements.txt; \
+              python setup.py install
+cd ../graphite-web; git fetch origin; \
+              git checkout ${GRAPHITE_RELEASE}; \
+              pip install -r requirements.txt; \
+              python check-dependencies.py; \
+              python setup.py install
+
+# Install configuration files for Graphite/Carbon and Apache
+cp -b ${GRAPHITE_CONF}/*.example ${GRAPHITE_CONF}/examples/
+cp -b ${SYNTHESIZE_HOME}/templates/graphite/conf/* ${GRAPHITE_CONF}/
+cp -b ${SYNTHESIZE_HOME}/templates/collectd/collectd.conf /etc/collectd/
+cp -b ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/
+
+# Install configuration files for Django
+cd ${GRAPHITE_HOME}/webapp/graphite
+cp -b ${SYNTHESIZE_HOME}/templates/graphite/webapp/* .
+sed -i -e "s/UNSAFE_DEFAULT/`date | md5sum | cut -d ' ' -f 1`/" local_settings.py
+
+# Upgrade Django and migrate the webapp database
+pip install Django==1.7
+cp ${GRAPHITE_STORAGE}/graphite.db ${GRAPHITE_STORAGE}/graphite.db.backup-`date +%Y%m%d_%H%M%S`
+PYTHONPATH=/opt/graphite/webapp django-admin.py syncdb --noinput --no-initial-data --settings=graphite.settings
+
+# Restart our processes
+service carbon-cache restart
+service memcached restart
+service apache2 restart
