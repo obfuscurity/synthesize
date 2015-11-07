@@ -10,7 +10,7 @@ GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
 
 if [ -z $GRAPHITE_RELEASE ]; then
-    GRAPHITE_RELEASE='0.9.13-pre1'
+    GRAPHITE_RELEASE='0.9.14'
 fi
 
 if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04' ]]; then
