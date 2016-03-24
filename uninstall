@@ -27,7 +27,7 @@ rm /etc/init/statsite.conf
 rm /etc/cron.hourly/graphite-build-index
 
 # Uninstall our package dependencies and purge configurations
-apt-get purge -y python-cairo python-django python-django-tagging python-twisted python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make
+apt-get purge -y python-cairo python-django python-django-tagging python-twisted python-zope.interface fontconfig apache2 libapache2-mod-wsgi python-pysqlite2 python-simplejson python-memcache git-core collectd memcached gcc g++ make libtool automake
 apt-get autoremove -y
 
 # Brute force cleanup on the collectd configuration directory
