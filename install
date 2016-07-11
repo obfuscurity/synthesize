@@ -10,7 +10,7 @@ GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
 
 if [ -z $GRAPHITE_RELEASE ]; then
-    GRAPHITE_RELEASE='0.9.15'
+    GRAPHITE_RELEASE='master'
 fi
 
 if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04' ]]; then
@@ -26,7 +26,7 @@ fi
 apt-get update -y
 
 # Install package dependencies from apt
-RUNLEVEL=1 apt-get install -y libcairo2-dev libffi-dev pkg-config python-dev python-pip fontconfig apache2 libapache2-mod-wsgi git-core collectd memcached gcc g++ make
+RUNLEVEL=1 apt-get install -y libcairo2-dev libffi-dev pkg-config python-dev python-pip fontconfig apache2 libapache2-mod-wsgi git-core collectd memcached gcc g++ make libtool automake
 
 # Download source repositories for Graphite/Carbon/Whisper and Statsite
 cd /usr/local/src
@@ -39,7 +39,7 @@ git clone https://github.com/armon/statsite.git
 cd whisper; git checkout ${GRAPHITE_RELEASE}; python setup.py install
 cd ../carbon; git checkout ${GRAPHITE_RELEASE}; pip install -r requirements.txt; python setup.py install
 cd ../graphite-web; git checkout ${GRAPHITE_RELEASE}; pip install -r requirements.txt; python check-dependencies.py; python setup.py install
-cd ../statsite; pip install --egg SCons; make; cp statsite /usr/local/sbin/; cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
+cd ../statsite; ./bootstrap.sh; ./configure; make; cp src/statsite /usr/local/sbin/; cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
 
 # Install configuration files for Graphite/Carbon and Apache
 cp ${SYNTHESIZE_HOME}/templates/statsite/statsite.conf /etc/statsite.conf
@@ -64,23 +64,24 @@ cp ${SYNTHESIZE_HOME}/templates/graphite/webapp/* .
 sed -i -e "s/UNSAFE_DEFAULT/`date | md5sum | cut -d ' ' -f 1`/" local_settings.py
 
 # Setup the Django database
-python manage.py syncdb --noinput
-chown www-data:www-data ${GRAPHITE_STORAGE}/graphite.db
+PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py migrate --noinput --settings=graphite.settings --run-syncdb
+PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py loaddata --settings=graphite.settings initial_data.json
 
 # Add carbon system user and set permissions
 groupadd -g 998 carbon
 useradd -c "carbon user" -g 998 -u 998 -s /bin/false carbon
 chmod 775 ${GRAPHITE_STORAGE}
 chown www-data:carbon ${GRAPHITE_STORAGE}
+chown www-data:www-data ${GRAPHITE_STORAGE}/graphite.db
 chown -R carbon ${GRAPHITE_STORAGE}/whisper
 mkdir ${GRAPHITE_STORAGE}/log/apache2
-chown www-data ${GRAPHITE_STORAGE}/log/webapp
+chown -R www-data ${GRAPHITE_STORAGE}/log/webapp
 chmod +x /etc/init.d/carbon-cache
 
 # Setup hourly cron to rebuild Graphite index
 cp ${SYNTHESIZE_HOME}/templates/graphite/cron/build-index /etc/cron.hourly/graphite-build-index
 chmod 755 /etc/cron.hourly/graphite-build-index
-sudo -u www-data /opt/graphite/bin/build-index.sh
+#sudo -u www-data /opt/graphite/bin/build-index.sh
 
 # Start our processes
 update-rc.d carbon-cache defaults
@@ -89,4 +90,5 @@ service memcached start
 service collectd start
 service apache2 start
 service statsite start
+service apache2 restart
 
