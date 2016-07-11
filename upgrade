@@ -9,6 +9,15 @@ GRAPHITE_HOME='/opt/graphite'
 GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
 
+if [[ ! $DANGER_ZONE =~ 'TRUE' ]]; then
+  echo "This upgrade script has not been thoroughly tested. There is a non-zero"
+  echo "chance that running this script will break your Synthesize-Graphite"
+  echo "installation. If you accept this warning and wish to continue anyways,"
+  echo "run this script again with the DANGER_ZONE environment variable set to TRUE."
+  echo
+  exit 1
+fi
+
 if [ -z $GRAPHITE_RELEASE ]; then
     GRAPHITE_RELEASE='master'
 fi
