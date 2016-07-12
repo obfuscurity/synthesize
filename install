@@ -83,6 +83,20 @@ cp ${SYNTHESIZE_HOME}/templates/graphite/cron/build-index /etc/cron.hourly/graph
 chmod 755 /etc/cron.hourly/graphite-build-index
 #sudo -u www-data /opt/graphite/bin/build-index.sh
 
+# Install Grafana
+echo 'deb https://packagecloud.io/grafana/stable/debian/ wheezy main' > /etc/apt/sources.list.d/grafana.list
+curl https://packagecloud.io/gpg.key | apt-key add -
+apt-get update -y
+apt-get install -y grafana
+service grafana-server start
+sleep 5
+curl -X POST -H 'Content-Type: application/json' -u 'admin:admin' \
+  -d '{ "name": "graphite", "type": "graphite", "url": "https://127.0.0.1:443", "access": "proxy", "basicAuth": false }' \
+  "http://127.0.0.1:3000/api/datasources"
+curl -X POST -H 'Content-Type: application/json' -u 'admin:admin' \
+  -d '{ "inputs": [{"name": "*", "pluginId": "graphite", "type": "datasource", "value": "graphite"}],  "overwrite": true, "path": "dashboards/carbon_metrics.json", "pluginId": "graphite" }' \
+  "http://127.0.0.1:3000/api/dashboards/import"
+
 # Start our processes
 update-rc.d carbon-cache defaults
 service carbon-cache start
