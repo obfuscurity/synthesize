@@ -11,4 +11,4 @@ config:
   packages:
     - git
   runcmd:
-    - cd /home/install && git clone https://github.com/obfuscurity/synthesize.git && cd synthesize && git checkout feature/graphite-master && bash install
+    - cd /home/install && git clone https://github.com/obfuscurity/synthesize.git && cd synthesize && bash install
