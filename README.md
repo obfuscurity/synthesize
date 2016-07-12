@@ -17,8 +17,8 @@ Beginning with version 3.0 we've also incorporated the Grafana dashboard project
 
 * Graphite master (0.10.0-alpha or pre-1.0) ([graphite-web](https://github.com/graphite-project/graphite-web), [carbon](https://github.com/graphite-project/carbon), [whisper](https://github.com/graphite-project/whisper))
 * StatsD ([statsite](https://github.com/armon/statsite))
-* (Collectd)[http://collectd.org/]
-* (Grafana)[https://grafana.org/]
+* [Collectd](http://collectd.org/)
+* [Grafana](https://grafana.org/)
 
 ## Dependencies
 
