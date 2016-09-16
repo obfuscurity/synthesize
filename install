@@ -81,7 +81,7 @@ chmod +x /etc/init.d/carbon-cache
 # Setup hourly cron to rebuild Graphite index
 cp ${SYNTHESIZE_HOME}/templates/graphite/cron/build-index /etc/cron.hourly/graphite-build-index
 chmod 755 /etc/cron.hourly/graphite-build-index
-#sudo -u www-data /opt/graphite/bin/build-index.sh
+sudo -u www-data /opt/graphite/bin/build-index.sh
 
 # Install Grafana
 echo 'deb https://packagecloud.io/grafana/stable/debian/ wheezy main' > /etc/apt/sources.list.d/grafana.list
