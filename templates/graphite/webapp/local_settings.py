@@ -25,9 +25,6 @@ SECRET_KEY = 'UNSAFE_DEFAULT'
 # Override this to provide documentation specific to your Graphite deployment
 #DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
 
-# Metric data and graphs are cached for one minute by default
-#DEFAULT_CACHE_DURATION = 60
-
 # Logging
 LOG_ROTATION = True
 LOG_ROTATION_COUNT = 5
@@ -58,6 +55,7 @@ MEMCACHE_HOSTS = ['127.0.0.1:11211']
 # cached for longer periods of times. All times are in seconds. If the policy is
 # empty or undefined, all results will be cached for DEFAULT_CACHE_DURATION.
 #DEFAULT_CACHE_DURATION = 60 # Cache images and data for 1 minute
+DEFAULT_CACHE_DURATION = 10
 #DEFAULT_CACHE_POLICY = [(0, 60), # default is 60 seconds
 #                        (7200, 120), # >= 2 hour queries are cached 2 minutes
 #                        (21600, 180)] # >= 6 hour queries are cached 3 minutes
