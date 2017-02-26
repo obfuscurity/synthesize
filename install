@@ -9,6 +9,39 @@ GRAPHITE_HOME='/opt/graphite'
 GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
 
+# Check to see if python-openssl is installed first
+set +e
+PYTHON_OPENSSL_INSTALLED=`dpkg -s python-openssl 2>/dev/null | grep '^Status'`
+set -e
+
+# This can break Carbon's python-twisted, exit with explanation
+if [[ ! $PYTHON_OPENSSL_INSTALLED == '' ]]; then
+  set +x
+  clear
+  echo
+  echo
+  echo
+  echo "##########################################################"
+  echo
+  echo "It appears that you have the python-openssl installed."
+  echo "There are known issues with this package that can cause"
+  echo "the Carbon service to fail to start. If you don't need"
+  echo "the python-openssl library, it's recommended that you"
+  echo "uninstall this package before continuing."
+  echo
+  echo "  $ sudo apt-get remove python-openssl"
+  echo
+  echo "More information is provided at the link below."
+  echo
+  echo "https://github.com/graphite-project/graphite-web/issues/1721#issuecomment-253279181"
+  echo
+  echo "##########################################################"
+  echo
+  echo
+  echo
+  exit 1
+fi
+
 if [ -z $GRAPHITE_RELEASE ]; then
     GRAPHITE_RELEASE='master'
 fi
