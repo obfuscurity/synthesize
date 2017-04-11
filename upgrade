@@ -1,5 +1,5 @@
 #!/bin/bash
-# Synthesize upgrade script for Graphite master
+# Synthesize upgrade script for Graphite 1.0.0
 # Jason Dixon <jason@dixongroup.net>
 
 SYNTHESIZE_HOME=$( cd "$( dirname "$0" )" && pwd )
@@ -19,7 +19,7 @@ if [[ ! $DANGER_ZONE =~ 'TRUE' ]]; then
 fi
 
 if [ -z $GRAPHITE_RELEASE ]; then
-    GRAPHITE_RELEASE='master'
+    GRAPHITE_RELEASE='1.0.0'
 fi
 
 if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04' ]]; then

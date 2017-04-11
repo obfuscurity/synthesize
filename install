@@ -43,7 +43,7 @@ if [[ ! $PYTHON_OPENSSL_INSTALLED == '' ]]; then
 fi
 
 if [ -z $GRAPHITE_RELEASE ]; then
-    GRAPHITE_RELEASE='master'
+    GRAPHITE_RELEASE='1.0.0'
 fi
 
 if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04' ]]; then

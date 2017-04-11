@@ -12,6 +12,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network :forwarded_port, guest: 2003, host: 22003
   config.vm.network :forwarded_port, guest: 2004, host: 22004
   config.vm.network :forwarded_port, guest: 3000, host: 3030
-  graphite_version = ENV['GRAPHITE_RELEASE'].nil? ? 'master' : ENV['GRAPHITE_RELEASE']
+  graphite_version = ENV['GRAPHITE_RELEASE'].nil? ? '1.0.0' : ENV['GRAPHITE_RELEASE']
   config.vm.provision "shell", inline: "cd /vagrant; GRAPHITE_RELEASE=#{graphite_version} ./install"
 end
