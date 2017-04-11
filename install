@@ -123,7 +123,7 @@ sudo -u www-data /opt/graphite/bin/build-index.sh
 echo 'deb https://packagecloud.io/grafana/stable/debian/ wheezy main' > /etc/apt/sources.list.d/grafana.list
 curl https://packagecloud.io/gpg.key | apt-key add -
 apt-get update -y
-apt-get install -y grafana
+DEBIAN_FRONTEND=noninteractive apt-get install -y grafana
 service grafana-server start
 sleep 5
 curl -X POST -H 'Content-Type: application/json' -u 'admin:admin' \
