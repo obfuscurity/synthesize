@@ -1,5 +1,5 @@
 #!/bin/bash
-# Graphite uninstall script for Ubuntu 13.10 x64
+# Graphite uninstall script for Ubuntu 14.04 x64
 # Jason Dixon <jason@dixongroup.net>
 
 service carbon-cache stop

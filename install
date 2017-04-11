@@ -43,7 +43,7 @@ if [[ ! $PYTHON_OPENSSL_INSTALLED == '' ]]; then
 fi
 
 if [ -z $GRAPHITE_RELEASE ]; then
-    GRAPHITE_RELEASE='0.9.15'
+    GRAPHITE_RELEASE='1.0.0'
 fi
 
 if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04' ]]; then
@@ -100,23 +100,38 @@ cp ${SYNTHESIZE_HOME}/templates/graphite/webapp/* .
 sed -i -e "s/UNSAFE_DEFAULT/`date | md5sum | cut -d ' ' -f 1`/" local_settings.py
 
 # Setup the Django database
-python manage.py syncdb --noinput
-chown www-data:www-data ${GRAPHITE_STORAGE}/graphite.db
+PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py migrate --noinput --settings=graphite.settings --run-syncdb
+PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py loaddata --settings=graphite.settings initial_data.json
 
 # Add carbon system user and set permissions
 groupadd -g 998 carbon
 useradd -c "carbon user" -g 998 -u 998 -s /bin/false carbon
 chmod 775 ${GRAPHITE_STORAGE}
 chown www-data:carbon ${GRAPHITE_STORAGE}
+chown www-data:www-data ${GRAPHITE_STORAGE}/graphite.db
 chown -R carbon ${GRAPHITE_STORAGE}/whisper
 mkdir ${GRAPHITE_STORAGE}/log/apache2
-chown www-data ${GRAPHITE_STORAGE}/log/webapp
+chown -R www-data ${GRAPHITE_STORAGE}/log/webapp
 chmod +x /etc/init.d/carbon-cache
 
 # Setup hourly cron to rebuild Graphite index
 cp ${SYNTHESIZE_HOME}/templates/graphite/cron/build-index /etc/cron.hourly/graphite-build-index
 chmod 755 /etc/cron.hourly/graphite-build-index
 sudo -u www-data /opt/graphite/bin/build-index.sh
+
+# Install Grafana
+echo 'deb https://packagecloud.io/grafana/stable/debian/ wheezy main' > /etc/apt/sources.list.d/grafana.list
+curl https://packagecloud.io/gpg.key | apt-key add -
+apt-get update -y
+DEBIAN_FRONTEND=noninteractive apt-get install -y grafana
+service grafana-server start
+sleep 5
+curl -X POST -H 'Content-Type: application/json' -u 'admin:admin' \
+  -d '{ "name": "graphite", "type": "graphite", "url": "https://127.0.0.1:443", "access": "proxy", "basicAuth": false }' \
+  "http://127.0.0.1:3000/api/datasources"
+curl -X POST -H 'Content-Type: application/json' -u 'admin:admin' \
+  -d '{ "inputs": [{"name": "*", "pluginId": "graphite", "type": "datasource", "value": "graphite"}],  "overwrite": true, "path": "dashboards/carbon_metrics.json", "pluginId": "graphite" }' \
+  "http://127.0.0.1:3000/api/dashboards/import"
 
 # Start our processes
 update-rc.d carbon-cache defaults
@@ -125,4 +140,5 @@ service memcached start
 service collectd start
 service apache2 start
 service statsite start
+service apache2 restart
 

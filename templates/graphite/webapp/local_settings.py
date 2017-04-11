@@ -23,12 +23,13 @@ SECRET_KEY = 'UNSAFE_DEFAULT'
 #TIME_ZONE = 'America/Los_Angeles'
 
 # Override this to provide documentation specific to your Graphite deployment
-#DOCUMENTATION_URL = "http://graphite.readthedocs.org/"
+#DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
 
 # Logging
+LOG_ROTATION = True
+LOG_ROTATION_COUNT = 5
 LOG_RENDERING_PERFORMANCE = True
 LOG_CACHE_PERFORMANCE = True
-#LOG_METRIC_ACCESS = True
 
 # Enable full debug page display on exceptions (Internal Server Error pages)
 #DEBUG = True
@@ -46,9 +47,22 @@ LOG_CACHE_PERFORMANCE = True
 # as every webapp in the cluster should use the exact same values to prevent
 # unneeded cache misses. Set to [] to disable caching of images and fetched data
 #MEMCACHE_HOSTS = ['10.10.10.10:11211', '10.10.10.11:11211', '10.10.10.12:11211']
-#DEFAULT_CACHE_DURATION = 60 # Cache images and data for 1 minute
 MEMCACHE_HOSTS = ['127.0.0.1:11211']
 
+# Metric data and graphs are cached for one minute by default. If defined,
+# DEFAULT_CACHE_POLICY is a list of tuples of minimum query time ranges mapped
+# to the cache duration for the results. This allows for larger queries to be
+# cached for longer periods of times. All times are in seconds. If the policy is
+# empty or undefined, all results will be cached for DEFAULT_CACHE_DURATION.
+#DEFAULT_CACHE_DURATION = 60 # Cache images and data for 1 minute
+DEFAULT_CACHE_DURATION = 10
+#DEFAULT_CACHE_POLICY = [(0, 60), # default is 60 seconds
+#                        (7200, 120), # >= 2 hour queries are cached 2 minutes
+#                        (21600, 180)] # >= 6 hour queries are cached 3 minutes
+#MEMCACHE_KEY_PREFIX = 'graphite'
+
+# Set URL_PREFIX when deploying graphite-web to a non-root location
+#URL_PREFIX = '/graphite'
 
 #####################################
 # Filesystem Paths #
@@ -62,7 +76,7 @@ MEMCACHE_HOSTS = ['127.0.0.1:11211']
 # of these is relative to GRAPHITE_ROOT
 #CONF_DIR = '/opt/graphite/conf'
 #STORAGE_DIR = '/opt/graphite/storage'
-#CONTENT_DIR = '/opt/graphite/webapp/content'
+#STATIC_ROOT = '/opt/graphite/static'
 
 # To further or fully customize the paths, modify the following. Note that the
 # default settings for each of these are relative to CONF_DIR and STORAGE_DIR
@@ -72,10 +86,12 @@ MEMCACHE_HOSTS = ['127.0.0.1:11211']
 #GRAPHTEMPLATES_CONF = '/opt/graphite/conf/graphTemplates.conf'
 
 ## Data directories
-# NOTE: If any directory is unreadable in DATA_DIRS it will break metric browsing
+# NOTE: If any directory is unreadable in STANDARD_DIRS it will break metric browsing
+#CERES_DIR = '/opt/graphite/storage/ceres'
 #WHISPER_DIR = '/opt/graphite/storage/whisper'
 #RRD_DIR = '/opt/graphite/storage/rrd'
-#DATA_DIRS = [WHISPER_DIR, RRD_DIR] # Default: set from the above variables
+# Data directories using the "Standard" finder (i.e. not Ceres)
+#STANDARD_DIRS = [WHISPER_DIR, RRD_DIR] # Default: set from the above variables
 #LOG_DIR = '/opt/graphite/storage/log/webapp'
 #INDEX_FILE = '/opt/graphite/storage/index'  # Search index file
 
@@ -102,22 +118,30 @@ MEMCACHE_HOSTS = ['127.0.0.1:11211']
 #USE_LDAP_AUTH = True
 #LDAP_SERVER = "ldap.mycompany.com"
 #LDAP_PORT = 389
-#	OR
+#LDAP_USE_TLS = False
+#        OR
 #LDAP_URI = "ldaps://ldap.mycompany.com:636"
 #LDAP_SEARCH_BASE = "OU=users,DC=mycompany,DC=com"
 #LDAP_BASE_USER = "CN=some_readonly_account,DC=mycompany,DC=com"
 #LDAP_BASE_PASS = "readonly_account_password"
 #LDAP_USER_QUERY = "(username=%s)"  #For Active Directory use "(sAMAccountName=%s)"
 #
+# User DN template to use for binding (and authentication) against
+# the LDAP server. %(username) is replaced with the username supplied at
+# graphite login.
+#LDAP_USER_DN_TEMPLATE = "CN=%(username)s,OU=users,DC=mycompany,DC=com"
+#
 # If you want to further customize the ldap connection options you should
 # directly use ldap.set_option to set the ldap module's global options.
 # For example:
 #
 #import ldap
-#ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_ALLOW)
+#ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_ALLOW) # Use ldap.OPT_X_TLS_DEMAND to force TLS
+#ldap.set_option(ldap.OPT_REFERRALS, 0) # Enable for Active Directory
 #ldap.set_option(ldap.OPT_X_TLS_CACERTDIR, "/etc/ssl/ca")
 #ldap.set_option(ldap.OPT_X_TLS_CERTFILE, "/etc/ssl/mycert.pem")
 #ldap.set_option(ldap.OPT_X_TLS_KEYFILE, "/etc/ssl/mykey.pem")
+#ldap.set_option(ldap.OPT_DEBUG_LEVEL, 65535) # To enable verbose debugging
 # See http://www.python-ldap.org/ for further details on these options.
 
 ## REMOTE_USER authentication. See: https://docs.djangoproject.com/en/dev/howto/auth-remote-user/
@@ -125,6 +149,27 @@ MEMCACHE_HOSTS = ['127.0.0.1:11211']
 
 # Override the URL for the login link (e.g. for django_openid_auth)
 #LOGIN_URL = '/account/login'
+
+
+###############################
+# Authorization for Dashboard #
+###############################
+# By default, there is no security on dashboards - any user can add, change or delete them.
+# This section provides 3 different authorization models, of varying strictness.
+
+# If set to True, users must be logged in to save or delete dashboards. Defaults to False
+#DASHBOARD_REQUIRE_AUTHENTICATION = True
+
+# If set to the name of a user group, dashboards can be saved and deleted by any user in this
+# group.  Groups can be set in the Django Admin app, or in LDAP.  Defaults to None.
+# NOTE: Ignored if DASHBOARD_REQUIRE_AUTHENTICATION is not set
+#DASHBOARD_REQUIRE_EDIT_GROUP = 'dashboard-editors-group'
+
+# If set to True, dashboards can be saved or deleted by any user having the appropriate
+# (change or delete) permission (as set in the Django Admin app).  Defaults to False
+# NOTE: Ignored if DASHBOARD_REQUIRE_AUTHENTICATION is not set
+#DASHBOARD_REQUIRE_PERMISSIONS = True
+
 
 
 ##########################
@@ -136,10 +181,10 @@ MEMCACHE_HOSTS = ['127.0.0.1:11211']
 # Django models such as saved graphs, dashboards, user preferences, etc.
 # Metric data is not stored here.
 #
-# DO NOT FORGET TO RUN 'manage.py syncdb' AFTER SETTING UP A NEW DATABASE
+# DO NOT FORGET TO RUN MIGRATIONS AFTER SETTING UP A NEW DATABASE
+# http://graphite.readthedocs.io/en/latest/config-database-setup.html
 #
 # The following built-in database engines are available:
-#  django.db.backends.postgresql          # Removed in Django 1.4
 #  django.db.backends.postgresql_psycopg2
 #  django.db.backends.mysql
 #  django.db.backends.sqlite3
@@ -160,7 +205,6 @@ MEMCACHE_HOSTS = ['127.0.0.1:11211']
 #}
 #
 
-
 #########################
 # Cluster Configuration #
 #########################
@@ -172,11 +216,19 @@ MEMCACHE_HOSTS = ['127.0.0.1:11211']
 # used.
 #CLUSTER_SERVERS = ["10.0.2.2:80", "10.0.2.3:80"]
 
+# This settings control wether https is used to communicate between cluster members
+#INTRACLUSTER_HTTPS = False
 ## These are timeout values (in seconds) for requests to remote webapps
-#REMOTE_STORE_FETCH_TIMEOUT = 6   # Timeout to fetch series data
-#REMOTE_STORE_FIND_TIMEOUT = 2.5  # Timeout for metric find requests
-#REMOTE_STORE_RETRY_DELAY = 60    # Time before retrying a failed remote webapp
-#REMOTE_FIND_CACHE_DURATION = 300 # Time to cache remote metric find results
+#REMOTE_FIND_TIMEOUT = 3.0             # Timeout for metric find requests
+#REMOTE_FETCH_TIMEOUT = 6.0            # Timeout to fetch series data
+#REMOTE_RETRY_DELAY = 60.0             # Time before retrying a failed remote webapp
+#REMOTE_EXCLUDE_LOCAL = False          # Try to detect when a cluster server is localhost and don't forward queries
+#FIND_CACHE_DURATION = 300             # Time to cache remote metric find results
+# If the query doesn't fall entirely within the FIND_TOLERANCE window
+# we disregard the window. This prevents unnecessary remote fetches
+# caused when carbon's cache skews node.intervals, giving the appearance
+# remote systems have data we don't have locally, which we probably do.
+#FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
 
 ## Remote rendering settings
 # Set to True to enable rendering of Graphs on a remote webapp
@@ -195,6 +247,22 @@ MEMCACHE_HOSTS = ['127.0.0.1:11211']
 # You *should* use 127.0.0.1 here in most cases
 #CARBONLINK_HOSTS = ["127.0.0.1:7002:a", "127.0.0.1:7102:b", "127.0.0.1:7202:c"]
 #CARBONLINK_TIMEOUT = 1.0
+#CARBONLINK_RETRY_DELAY = 15 # Seconds to blacklist a failed remote server
+
+# A "keyfunc" is a user-defined python function that is given a metric name
+# and returns a string that should be used when hashing the metric name.
+# This is important when your hashing has to respect certain metric groupings.
+#CARBONLINK_HASHING_KEYFUNC = "/opt/graphite/bin/keyfuncs.py:my_keyfunc"
+
+# Prefix set in carbon for the carbon specific metrics.  Default in carbon is 'carbon'
+#CARBON_METRIC_PREFIX='carbon'
+
+# The replication factor to use with consistent hashing
+# This should usually match the value configured in Carbon
+#REPLICATION_FACTOR = 1
+
+# How often should render.datalib.fetch() retry to get remote data
+# MAX_FETCH_RETRIES = 2
 
 #####################################
 # Additional Django Settings #
@@ -202,4 +270,3 @@ MEMCACHE_HOSTS = ['127.0.0.1:11211']
 # Uncomment the following line for direct access to Django settings such as
 # MIDDLEWARE_CLASSES or APPS
 #from graphite.app_settings import *
-
