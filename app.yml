@@ -11,4 +11,4 @@ config:
   packages:
     - git
   runcmd:
-    - cd /home/install && git clone https://github.com/obfuscurity/synthesize.git && cd synthesize && bash install
+    - cd /home/install && apt-get -y remove python-openssl && git clone https://github.com/obfuscurity/synthesize.git && cd synthesize && bash install
