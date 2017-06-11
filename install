@@ -23,7 +23,7 @@ if [[ ! $PYTHON_OPENSSL_INSTALLED == '' ]]; then
   echo
   echo "##########################################################"
   echo
-  echo "It appears that you have the python-openssl installed."
+  echo "It appears that you have python-openssl installed."
   echo "There are known issues with this package that can cause"
   echo "the Carbon service to fail to start. If you don't need"
   echo "the python-openssl library, it's recommended that you"
