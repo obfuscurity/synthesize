@@ -1,0 +1,12 @@
+--- requirements.txt    2019-08-02 05:41:54.250340003 +0000
++++ requirements.txt    2019-08-02 05:41:27.561002001 +0000
+@@ -45,7 +45,7 @@
+ gunicorn
+ pytz
+ pyparsing
+-cairocffi
++cairocffi==0.9.0
+ git+git://github.com/graphite-project/whisper.git#egg=whisper
+ # Ceres is optional
+ # git+git://github.com/graphite-project/ceres.git#egg=ceres
+

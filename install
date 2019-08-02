@@ -43,7 +43,7 @@ if [[ ! $PYTHON_OPENSSL_INSTALLED == '' ]]; then
 fi
 
 if [ -z $GRAPHITE_RELEASE ]; then
-    GRAPHITE_RELEASE='1.0.2'
+    GRAPHITE_RELEASE='1.1.5'
 fi
 
 if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04' ]]; then
@@ -71,7 +71,7 @@ git clone https://github.com/armon/statsite.git
 # Build and install Graphite/Carbon/Whisper and Statsite
 cd whisper; git checkout ${GRAPHITE_RELEASE}; python setup.py install
 cd ../carbon; git checkout ${GRAPHITE_RELEASE}; pip install -r requirements.txt; python setup.py install
-cd ../graphite-web; git checkout ${GRAPHITE_RELEASE}; pip install -r requirements.txt; python check-dependencies.py; python setup.py install
+cd ../graphite-web; git checkout ${GRAPHITE_RELEASE}; patch -p0 < ${SYNTHESIZE_HOME}/patches/graphite-web-001.diff; pip install -r requirements.txt; python check-dependencies.py; python setup.py install
 cd ../statsite; ./autogen.sh; ./configure; make; cp statsite /usr/local/sbin/; cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
 
 # Update txamqp to support RabbitMQ 2.4+
@@ -120,8 +120,8 @@ chmod 755 /etc/cron.hourly/graphite-build-index
 sudo -u www-data /opt/graphite/bin/build-index.sh
 
 # Install Grafana
-echo 'deb https://packagecloud.io/grafana/stable/debian/ wheezy main' > /etc/apt/sources.list.d/grafana.list
-curl https://packagecloud.io/gpg.key | apt-key add -
+add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
 apt-get update -y
 DEBIAN_FRONTEND=noninteractive apt-get install -y grafana
 service grafana-server start
