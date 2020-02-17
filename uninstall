@@ -21,7 +21,6 @@ rm -r /usr/local/src/statsite
 rm /usr/local/bin/*whisper*.py
 rm /usr/local/lib/python2.7/dist-packages/whisper*
 rm /etc/apache2/sites-*/graphite.conf
-rm /etc/apache2/vhosts.d/graphite.conf
 systemctl disable 'carbon-cache@1' # TODO: INSTANCES loop needs to be implemented
 systemctl disable statsite
 systemctl disable grafana-server
