@@ -1,5 +1,5 @@
 name: synthesize
-image: ubuntu-14-04-x64
+image: ubuntu-18-04-x64
 min_size: 512mb
 config:
   #cloud-config

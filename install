@@ -1,5 +1,5 @@
 #!/bin/bash -ex
-# Graphite installation script for Ubuntu 14.04
+# Graphite installation script for Ubuntu 18.04
 # Jason Dixon <jason@dixongroup.net>
 
 SYNTHESIZE_HOME=$( cd "$( dirname "$0" )" && pwd )
@@ -9,45 +9,16 @@ GRAPHITE_HOME='/opt/graphite'
 GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
 
-# Check to see if python-openssl is installed first
-set +e
-PYTHON_OPENSSL_INSTALLED=`dpkg -s python-openssl 2>/dev/null | grep '^Status'`
-set -e
-
-# This can break Carbon's python-twisted, exit with explanation
-if [[ ! $PYTHON_OPENSSL_INSTALLED == '' ]]; then
-  set +x
-  clear
-  echo
-  echo
-  echo
-  echo "##########################################################"
-  echo
-  echo "It appears that you have python-openssl installed."
-  echo "There are known issues with this package that can cause"
-  echo "the Carbon service to fail to start. If you don't need"
-  echo "the python-openssl library, it's recommended that you"
-  echo "uninstall this package before continuing."
-  echo
-  echo "  $ sudo apt-get remove python-openssl"
-  echo
-  echo "More information is provided at the link below."
-  echo
-  echo "https://github.com/graphite-project/graphite-web/issues/1721#issuecomment-253279181"
-  echo
-  echo "##########################################################"
-  echo
-  echo
-  echo
-  exit 1
-fi
-
 if [ -z $GRAPHITE_RELEASE ]; then
-    GRAPHITE_RELEASE='1.0.2'
+    GRAPHITE_RELEASE='master'
 fi
 
-if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04' ]]; then
-  echo "Sorry, this is only supported for Ubuntu Linux 14.04."
+if [ -z $STATSITE_RELEASE ]; then
+    STATSITE_RELEASE='master'
+fi
+
+if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 18.04' ]]; then
+  echo "Sorry, this is only supported for Ubuntu Linux 18.04."
   exit 1
 fi
 if [[ -d $GRAPHITE_HOME ]]; then
@@ -59,7 +30,9 @@ fi
 apt-get update -y
 
 # Install package dependencies from apt
-RUNLEVEL=1 apt-get install -y libcairo2-dev libffi-dev pkg-config python-dev python-pip fontconfig apache2 libapache2-mod-wsgi git-core collectd memcached gcc g++ make libtool automake
+RUNLEVEL=1 apt-get install -y git wget curl netbase collectd memcached \
+           build-essential automake libtool libffi-dev libcairo2-dev libcairo2 libffi6 \
+           python3-dev python3-pip fontconfig apache2 libapache2-mod-wsgi-py3
 
 # Download source repositories for Graphite/Carbon/Whisper and Statsite
 cd /usr/local/src
@@ -69,23 +42,45 @@ git clone https://github.com/graphite-project/whisper.git
 git clone https://github.com/armon/statsite.git
 
 # Build and install Graphite/Carbon/Whisper and Statsite
-cd whisper; git checkout ${GRAPHITE_RELEASE}; python setup.py install
-cd ../carbon; git checkout ${GRAPHITE_RELEASE}; pip install -r requirements.txt; python setup.py install
-cd ../graphite-web; git checkout ${GRAPHITE_RELEASE}; pip install -r requirements.txt; python check-dependencies.py; python setup.py install
-cd ../statsite; ./autogen.sh; ./configure; make; cp statsite /usr/local/sbin/; cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
+mkdir -p /opt/graphite
+
+cd whisper; \
+   git checkout ${GRAPHITE_RELEASE}; \
+   python3 setup.py install
+
+cd ../carbon; \
+   git checkout ${GRAPHITE_RELEASE}; \
+   pip3 install -r requirements.txt; \
+   python3 setup.py install
+
+cd ../graphite-web; \
+   pip3 install django==2.2.9; \
+   git checkout ${GRAPHITE_RELEASE}; \
+   pip3 install -r requirements.txt; \
+   python3 check-dependencies.py; \
+   python3 setup.py install
+
+cd ../statsite; \
+   git checkout ${STATSITE_RELEASE}; \
+   ./autogen.sh; \
+   ./configure; make; \
+   cp statsite /usr/local/sbin/; \
+   cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
 
 # Update txamqp to support RabbitMQ 2.4+
-pip install txamqp==0.6.2 --upgrade
+# also install service_identity to remove TLS error
+pip3 install txamqp service_identity --upgrade
 
 # Install configuration files for Graphite/Carbon and Apache
 cp ${SYNTHESIZE_HOME}/templates/statsite/statsite.conf /etc/statsite.conf
 mkdir ${GRAPHITE_CONF}/examples
 mv ${GRAPHITE_CONF}/*.example ${GRAPHITE_CONF}/examples/
 cp ${SYNTHESIZE_HOME}/templates/graphite/conf/* ${GRAPHITE_CONF}/
+mkdir -p /etc/collectd
 cp ${SYNTHESIZE_HOME}/templates/collectd/collectd.conf /etc/collectd/
 cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/
-cp ${SYNTHESIZE_HOME}/templates/init/* /etc/init/
-cp ${SYNTHESIZE_HOME}/templates/init.d/* /etc/init.d/
+# using systemd unins instead of init and upstart files
+cp ${SYNTHESIZE_HOME}/templates/systemd/* /etc/systemd/system/
 
 # Setup the correct Apache site and modules
 a2dissite 000-default
@@ -101,7 +96,7 @@ sed -i -e "s/UNSAFE_DEFAULT/`date | md5sum | cut -d ' ' -f 1`/" local_settings.p
 
 # Setup the Django database
 PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py migrate --noinput --settings=graphite.settings --run-syncdb
-PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py loaddata --settings=graphite.settings initial_data.json
+PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py collectstatic --noinput --settings=graphite.settings
 
 # Add carbon system user and set permissions
 groupadd -g 998 carbon
@@ -110,9 +105,10 @@ chmod 775 ${GRAPHITE_STORAGE}
 chown www-data:carbon ${GRAPHITE_STORAGE}
 chown www-data:www-data ${GRAPHITE_STORAGE}/graphite.db
 chown -R carbon ${GRAPHITE_STORAGE}/whisper
+mkdir -p ${GRAPHITE_STORAGE}/log/carbon-cache/
+chown -R carbon ${GRAPHITE_STORAGE}/log
 mkdir ${GRAPHITE_STORAGE}/log/apache2
 chown -R www-data ${GRAPHITE_STORAGE}/log/webapp
-chmod +x /etc/init.d/carbon-cache
 
 # Setup hourly cron to rebuild Graphite index
 cp ${SYNTHESIZE_HOME}/templates/graphite/cron/build-index /etc/cron.hourly/graphite-build-index
@@ -120,25 +116,34 @@ chmod 755 /etc/cron.hourly/graphite-build-index
 sudo -u www-data /opt/graphite/bin/build-index.sh
 
 # Install Grafana
-echo 'deb https://packagecloud.io/grafana/stable/debian/ wheezy main' > /etc/apt/sources.list.d/grafana.list
-curl https://packagecloud.io/gpg.key | apt-key add -
-apt-get update -y
-DEBIAN_FRONTEND=noninteractive apt-get install -y grafana
+apt-get install -y apt-transport-https
+apt-get install -y software-properties-common wget
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+apt-get update
+apt-get install grafana
+
+# Enabling processes start
+systemctl daemon-reload
+systemctl enable 'carbon-cache@1' # TODO: INSTANCES loop needs to be implemented
+systemctl enable statsite
+systemctl enable grafana-server
+
+# Start our processes
+systemctl start 'carbon-cache@1' # TODO: INSTANCES loop needs to be implemented
+service memcached start
+service collectd start
+service apache2 start
+service statsite start
 service grafana-server start
-sleep 5
+
+# Bootstrap Grafana datasources and dashboards
+# TODO: Not resilient, should be migrated to provisioning api
+sleep 15
 curl -X POST -H 'Content-Type: application/json' -u 'admin:admin' \
   -d '{ "name": "graphite", "type": "graphite", "url": "https://127.0.0.1:443", "access": "proxy", "basicAuth": false }' \
   "http://127.0.0.1:3000/api/datasources"
 curl -X POST -H 'Content-Type: application/json' -u 'admin:admin' \
   -d '{ "inputs": [{"name": "*", "pluginId": "graphite", "type": "datasource", "value": "graphite"}],  "overwrite": true, "path": "dashboards/carbon_metrics.json", "pluginId": "graphite" }' \
   "http://127.0.0.1:3000/api/dashboards/import"
-
-# Start our processes
-update-rc.d carbon-cache defaults
-service carbon-cache start
-service memcached start
-service collectd start
-service apache2 start
-service statsite start
-service apache2 restart
 
