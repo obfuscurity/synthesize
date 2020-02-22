@@ -79,8 +79,11 @@ cp ${SYNTHESIZE_HOME}/templates/graphite/conf/* ${GRAPHITE_CONF}/
 mkdir -p /etc/collectd
 cp ${SYNTHESIZE_HOME}/templates/collectd/collectd.conf /etc/collectd/
 cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/
-# using systemd unins instead of init and upstart files
+
+# using systemd units instead of init and upstart files
 cp ${SYNTHESIZE_HOME}/templates/systemd/* /etc/systemd/system/
+# installing scripts for cacron-cache instances control
+cp ${SYNTHESIZE_HOME}/templates/scripts/* /usr/local/bin/
 
 # Setup the correct Apache site and modules
 a2dissite 000-default
@@ -120,30 +123,25 @@ apt-get install -y apt-transport-https
 apt-get install -y software-properties-common wget
 wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
 add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
-apt-get update
 apt-get install grafana
+# Bootstrap Grafana datasources and dashboards
+mkdir -p /etc/grafana/provisioning/datasources/
+mkdir -p /etc/grafana/provisioning/dashboards/
+cp ${SYNTHESIZE_HOME}/templates/grafana/provisioning/datasources/* /etc/grafana/provisioning/datasources/
+cp ${SYNTHESIZE_HOME}/templates/grafana/provisioning/dashboards/* /etc/grafana/provisioning/dashboards/
+systemctl restart grafana-server
 
 # Enabling processes start
 systemctl daemon-reload
-systemctl enable 'carbon-cache@1' # TODO: INSTANCES loop needs to be implemented
+/usr/local/bin/carbon-cache enable
 systemctl enable statsite
 systemctl enable grafana-server
 
 # Start our processes
-systemctl start 'carbon-cache@1' # TODO: INSTANCES loop needs to be implemented
-service memcached start
-service collectd start
-service apache2 start
-service statsite start
-service grafana-server start
+/usr/local/bin/carbon-cache start
+service memcached restart
+service collectd restart
+service apache2 restart
+service statsite restart
 
-# Bootstrap Grafana datasources and dashboards
-# TODO: Not resilient, should be migrated to provisioning api
-sleep 15
-curl -X POST -H 'Content-Type: application/json' -u 'admin:admin' \
-  -d '{ "name": "graphite", "type": "graphite", "url": "https://127.0.0.1:443", "access": "proxy", "basicAuth": false }' \
-  "http://127.0.0.1:3000/api/datasources"
-curl -X POST -H 'Content-Type: application/json' -u 'admin:admin' \
-  -d '{ "inputs": [{"name": "*", "pluginId": "graphite", "type": "datasource", "value": "graphite"}],  "overwrite": true, "path": "dashboards/carbon_metrics.json", "pluginId": "graphite" }' \
-  "http://127.0.0.1:3000/api/dashboards/import"
 

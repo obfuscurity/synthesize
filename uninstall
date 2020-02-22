@@ -21,7 +21,7 @@ rm -r /usr/local/src/statsite
 rm /usr/local/bin/*whisper*.py
 rm /usr/local/lib/python2.7/dist-packages/whisper*
 rm /etc/apache2/sites-*/graphite.conf
-systemctl disable 'carbon-cache@1' # TODO: INSTANCES loop needs to be implemented
+/usr/local/bin/carbon-cache disable
 systemctl disable statsite
 systemctl disable grafana-server
 rm -rf /etc/systemd/system/carbon*
@@ -41,3 +41,4 @@ rm -r /etc/collectd
 # Remove our system user for Carbon
 pkill -9 -f carbon-cache
 userdel carbon
+rm /usr/local/bin/carbon-cache

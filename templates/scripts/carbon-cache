@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# Former initscript for carbon-cache processes
+# Jason Dixon <jason@dixongroup.net>
+# Modified for operating systemd instances
+#
+# You must set the variables below. The
+# INSTANCES variable should be set to the
+# number of carbon-cache instances you have
+# configured in your carbon.conf. Note that
+# they must be numerically indexed from 1.
+# (e.g. [cache:1], [cache:2], [cache:3]
+
+NAME=carbon-cache
+INSTANCES=1
+
+set -e
+
+test -x $DAEMON || exit 0
+
+case "$1" in
+  enable)
+    for INSTANCE in $(seq 1 $INSTANCES); do
+      echo -n "Starting ${NAME}-${INSTANCE}: "
+      systemctl enable "${NAME}@${INSTANCE}"
+    done
+    ${0} status
+    ;;
+
+  disable)
+    for INSTANCE in $(seq 1 $INSTANCES); do
+      echo -n "Starting ${NAME}-${INSTANCE}: "
+      systemctl disable "${NAME}@${INSTANCE}"
+    done
+    ${0} status
+    ;;
+
+  start)
+    for INSTANCE in $(seq 1 $INSTANCES); do
+      echo -n "Starting ${NAME}-${INSTANCE}: "
+      systemctl start "${NAME}@${INSTANCE}"
+    done
+    exit 0
+    ;;
+
+  stop)
+    for INSTANCE in $(seq 1 $INSTANCES); do
+      echo -n "Stopping ${NAME}-${INSTANCE}: "
+      systemctl stop "${NAME}@${INSTANCE}"
+    done
+    exit 0
+    ;;
+
+  restart)
+    for INSTANCE in $(seq 1 $INSTANCES); do
+      echo -n "Stopping ${NAME}-${INSTANCE}: "
+      systemctl restart "${NAME}@${INSTANCE}"
+    done
+    exit 0
+    ;;
+
+  status)
+    for INSTANCE in $(seq 1 $INSTANCES); do
+      echo -n "Stopping ${NAME}-${INSTANCE}: "
+      systemctl restart "${NAME}@${INSTANCE}"
+    done
+    exit 0
+    ;;
+
+  *)
+    echo "Usage: /usr/local/bin/${NAME} {enable|disable|start|stop|restart|status}" >%2
+    exit 1
+    ;;
+
+esac
+
+exit 0

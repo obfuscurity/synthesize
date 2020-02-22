@@ -67,6 +67,6 @@ PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py migrate --noinput --settings=
 PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py loaddata --settings=graphite.settings dump_${BACKUP}_data.json
 
 # Restart our processes
-systemctl restart 'carbon-cache@1' # TODO: INSTANCES loop needs to be implemented
+/usr/local/bin/carbon-cache restart
 service memcached restart
-service apache2 start
+service apache2 restart
