@@ -2,7 +2,7 @@
 # Graphite uninstall script for Ubuntu 14.04 x64
 # Jason Dixon <jason@dixongroup.net>
 
-systemctl stop 'carbon-cache@1' # TODO: more instances need to be stopped
+/usr/local/bin/carbon-cache stop
 service memcached stop
 service collectd stop
 service apache2 stop
