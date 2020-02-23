@@ -10,7 +10,7 @@ GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
 
 if [ -z $GRAPHITE_RELEASE ]; then
-    GRAPHITE_RELEASE='master'
+    GRAPHITE_RELEASE='1.1.6'
 fi
 
 if [ -z $STATSITE_RELEASE ]; then
@@ -76,13 +76,12 @@ cp ${SYNTHESIZE_HOME}/templates/statsite/statsite.conf /etc/statsite.conf
 mkdir ${GRAPHITE_CONF}/examples
 mv ${GRAPHITE_CONF}/*.example ${GRAPHITE_CONF}/examples/
 cp ${SYNTHESIZE_HOME}/templates/graphite/conf/* ${GRAPHITE_CONF}/
-mkdir -p /etc/collectd
 cp ${SYNTHESIZE_HOME}/templates/collectd/collectd.conf /etc/collectd/
 cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/
 
 # using systemd units instead of init and upstart files
 cp ${SYNTHESIZE_HOME}/templates/systemd/* /etc/systemd/system/
-# installing scripts for cacron-cache instances control
+# installing scripts for carbon-cache instances control script
 cp ${SYNTHESIZE_HOME}/templates/scripts/* /usr/local/bin/
 
 # Setup the correct Apache site and modules
@@ -113,10 +112,12 @@ chown -R carbon ${GRAPHITE_STORAGE}/log
 mkdir ${GRAPHITE_STORAGE}/log/apache2
 chown -R www-data ${GRAPHITE_STORAGE}/log/webapp
 
-# Setup hourly cron to rebuild Graphite index
-cp ${SYNTHESIZE_HOME}/templates/graphite/cron/build-index /etc/cron.hourly/graphite-build-index
-chmod 755 /etc/cron.hourly/graphite-build-index
-sudo -u www-data /opt/graphite/bin/build-index.sh
+# Setup hourly systemd timer to rebuild Graphite index
+cp ${SYNTHESIZE_HOME}/templates/scripts/graphite-build-index /usr/local/bin/graphite-build-index
+systemctl daemon-reload
+systemctl enable graphite-build-index.timer
+systemctl start graphite-build-index.timer
+systemctl start graphite-build-index
 
 # Install Grafana
 apt-get install -y apt-transport-https
@@ -124,6 +125,7 @@ apt-get install -y software-properties-common wget
 wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
 add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
 apt-get install grafana
+
 # Bootstrap Grafana datasources and dashboards
 mkdir -p /etc/grafana/provisioning/datasources/
 mkdir -p /etc/grafana/provisioning/dashboards/
@@ -132,7 +134,6 @@ cp ${SYNTHESIZE_HOME}/templates/grafana/provisioning/dashboards/* /etc/grafana/p
 systemctl restart grafana-server
 
 # Enabling processes start
-systemctl daemon-reload
 /usr/local/bin/carbon-cache enable
 systemctl enable statsite
 systemctl enable grafana-server
@@ -143,5 +144,3 @@ service memcached restart
 service collectd restart
 service apache2 restart
 service statsite restart
-
-

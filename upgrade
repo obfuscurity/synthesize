@@ -1,5 +1,5 @@
 #!/bin/bash
-# Synthesize upgrade script for Graphite 1.1.0
+# Synthesize upgrade script for Graphite 1.1.6
 # Jason Dixon <jason@dixongroup.net>
 
 SYNTHESIZE_HOME=$( cd "$( dirname "$0" )" && pwd )

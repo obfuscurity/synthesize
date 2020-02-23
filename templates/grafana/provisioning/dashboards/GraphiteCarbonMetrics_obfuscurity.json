@@ -1087,7 +1087,7 @@
           "hide": false,
           "refCount": 0,
           "refId": "A",
-          "target": "aliasByNode(scale(collectd.graphite.tail-graphite_web.response_time-retrieval_time_avg, 100), 3)"
+          "target": "aliasByNode(scale(collectd.graphite.tail-graphite_web.response_time-retrieval_time_min, 100), 3)"
         }
       ],
       "thresholds": [],
@@ -1180,7 +1180,7 @@
         {
           "refCount": 0,
           "refId": "A",
-          "target": "aliasByNode(scaleToSeconds(collectd.graphite.interface-enp0s3.if_octets.*, 1), 4)"
+          "target": "aliasByNode(scaleToSeconds(collectd.graphite.interface-*.if_octets.*, 1), 4)"
         }
       ],
       "thresholds": [],

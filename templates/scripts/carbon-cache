@@ -21,7 +21,7 @@ test -x $DAEMON || exit 0
 case "$1" in
   enable)
     for INSTANCE in $(seq 1 $INSTANCES); do
-      echo -n "Starting ${NAME}-${INSTANCE}: "
+      echo -n "Enabling ${NAME}-${INSTANCE}: "
       systemctl enable "${NAME}@${INSTANCE}"
     done
     ${0} status
@@ -29,7 +29,7 @@ case "$1" in
 
   disable)
     for INSTANCE in $(seq 1 $INSTANCES); do
-      echo -n "Starting ${NAME}-${INSTANCE}: "
+      echo -n "Disabling ${NAME}-${INSTANCE}: "
       systemctl disable "${NAME}@${INSTANCE}"
     done
     ${0} status
@@ -53,7 +53,7 @@ case "$1" in
 
   restart)
     for INSTANCE in $(seq 1 $INSTANCES); do
-      echo -n "Stopping ${NAME}-${INSTANCE}: "
+      echo -n "Restarting ${NAME}-${INSTANCE}: "
       systemctl restart "${NAME}@${INSTANCE}"
     done
     exit 0
@@ -61,7 +61,7 @@ case "$1" in
 
   status)
     for INSTANCE in $(seq 1 $INSTANCES); do
-      echo -n "Stopping ${NAME}-${INSTANCE}: "
+      echo -n "Status ${NAME}-${INSTANCE}: "
       systemctl restart "${NAME}@${INSTANCE}"
     done
     exit 0
