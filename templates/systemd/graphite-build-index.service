@@ -7,5 +7,3 @@ ExecStart=/usr/local/bin/carbon-build-index
 
 [Install]
 WantedBy=multi-user.target
-
-
