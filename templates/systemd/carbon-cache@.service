@@ -1,0 +1,16 @@
+[Unit]
+Description=Graphite Carbon Cache Instance %I
+After=network.target
+
+[Service]
+User=carbon
+Group=carbon
+ExecStartPre=/bin/rm -f /opt/graphite/storage/carbon-cache-%i.pid
+ExecStart=/usr/bin/python3 /opt/graphite/bin/carbon-cache.py --instance=%i start
+Type=forking
+PIDFile=/opt/graphite/storage/carbon-cache-%i.pid
+LimitNOFILE=128000
+
+[Install]
+WantedBy=multi-user.target
+DefaultInstance=1

@@ -1,0 +1,13 @@
+[Unit]
+Description=statsite StatsD service
+Wants=carbon-cache.service
+After=carbon-cache.service
+
+[Service]
+#User=statsd
+Type=simple
+ExecStart=/usr/local/sbin/statsite -f /etc/statsite.conf
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

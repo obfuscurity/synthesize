@@ -1,5 +1,5 @@
 #!/bin/bash
-# Synthesize upgrade script for Graphite 1.0.0
+# Synthesize upgrade script for Graphite 1.1.7
 # Jason Dixon <jason@dixongroup.net>
 
 SYNTHESIZE_HOME=$( cd "$( dirname "$0" )" && pwd )
@@ -19,11 +19,11 @@ if [[ ! $DANGER_ZONE =~ 'TRUE' ]]; then
 fi
 
 if [ -z $GRAPHITE_RELEASE ]; then
-    GRAPHITE_RELEASE='1.0.0'
+    GRAPHITE_RELEASE='1.1.7'
 fi
 
-if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 14.04' ]]; then
-  echo "Sorry, this is only supported for Ubuntu Linux 14.04."
+if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 18.04' ]]; then
+  echo "Sorry, this is only supported for Ubuntu Linux 18.04."
   exit 1
 fi
 if [[ ! -d $GRAPHITE_HOME ]]; then
@@ -35,16 +35,16 @@ fi
 cd /usr/local/src
 cd whisper; git fetch origin; \
             git checkout ${GRAPHITE_RELEASE}; \
-            python setup.py install
+            python3 setup.py install
 cd ../carbon; git fetch origin; \
               git checkout ${GRAPHITE_RELEASE}; \
-              pip install -r requirements.txt; \
-              python setup.py install
+              pip3 install -r requirements.txt; \
+              python3 setup.py install
 cd ../graphite-web; git fetch origin; \
               git checkout ${GRAPHITE_RELEASE}; \
-              pip install -r requirements.txt; \
-              python check-dependencies.py; \
-              python setup.py install
+              pip3 install -r requirements.txt; \
+              python3 check-dependencies.py; \
+              python3 setup.py install
 
 # Install configuration files for Graphite/Carbon and Apache
 cp -b ${GRAPHITE_CONF}/*.example ${GRAPHITE_CONF}/examples/
@@ -60,12 +60,13 @@ sed -i -e "s/UNSAFE_DEFAULT/`date | md5sum | cut -d ' ' -f 1`/" local_settings.p
 # Upgrade Django and migrate the webapp database
 service apache2 stop
 BACKUP=`date +%Y%m%d_%H%M%S`
-mv ${GRAPHITE_STORAGE}/graphite.db ${GRAPHITE_STORAGE}/graphite.db.backup-${BACKUP}
+cp -fv ${GRAPHITE_STORAGE}/graphite.db ${GRAPHITE_STORAGE}/graphite.db.backup-${BACKUP}
 PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py dumpdata --indent 4 --settings=graphite.settings > dump_${BACKUP}_data.json
+PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py makemigrations --noinput --settings=graphite.settings
 PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py migrate --noinput --settings=graphite.settings --run-syncdb
 PYTHONPATH=${GRAPHITE_HOME}/webapp django-admin.py loaddata --settings=graphite.settings dump_${BACKUP}_data.json
 
 # Restart our processes
-service carbon-cache restart
+/usr/local/bin/carbon-cache restart
 service memcached restart
-service apache2 start
+service apache2 restart
